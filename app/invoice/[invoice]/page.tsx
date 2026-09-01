@@ -364,7 +364,7 @@ export default function InvoicePage() {
                 <ShieldCheck className="h-4 w-4 text-emerald-400" /> Butuh bantuan transaksi ini?
               </span>
               <a
-                href={`https://wa.me/6281234567890?text=Halo%20CS%20TopUpStore,%20saya%20butuh%20bantuan%20dengan%20invoice%20${transaction.invoice_number}`}
+                href={`https://wa.me/6281234567890?text=Halo%20CS%20IRXPLAY,%20saya%20butuh%20bantuan%20dengan%20invoice%20${transaction.invoice_number}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-500/10 px-3.5 py-2 rounded-xl border border-emerald-500/30 transition-all"

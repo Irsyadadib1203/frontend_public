@@ -3,8 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   // Expose env vars ke komponen server untuk metadata generation
   env: {
-    NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME || "TopUp Game",
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "https://topupgame.com",
+    NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME || "IRXPLAY",
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "https://irxplay.com",
   },
   images: {
     remotePatterns: [

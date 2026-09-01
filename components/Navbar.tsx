@@ -42,17 +42,15 @@ export default function Navbar() {
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="relative h-10 w-10 rounded-xl overflow-hidden shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform flex items-center justify-center bg-card border border-border/50">
-            <Image
-              src={logoImg}
-              alt="Logo Toko"
-              className="object-contain w-full h-full p-1"
-              priority
-            />
-          </div>
+          <Image
+            src={logoImg}
+            alt="Logo Toko"
+            className="h-10 w-10 object-contain group-hover:scale-105 transition-transform"
+            priority
+          />
           <div>
-            <span className="font-gaming text-lg font-extrabold tracking-wider text-foreground flex items-center gap-1">
-              TOPUP<span className="text-primary">STORE</span>
+            <span className="font-gaming text-lg font-extrabold tracking-wider text-foreground flex items-center ">
+              IRX<span className="text-primary">PLAY</span>
               <Sparkles className="h-3.5 w-3.5 text-secondary animate-pulse" />
             </span>
             <span className="text-[10px] text-muted-foreground block -mt-1 tracking-widest font-mono">

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "@/app/global.css";
 import { Providers } from "@/components/providers"
 
-const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "TopUp Game";
-const SITE_URL  = process.env.NEXT_PUBLIC_SITE_URL  || "https://topupgame.com";
+const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "IRXPLAY";
+const SITE_URL  = process.env.NEXT_PUBLIC_SITE_URL  || "https://irxplay.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

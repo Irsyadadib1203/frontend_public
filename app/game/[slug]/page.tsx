@@ -173,7 +173,7 @@ export default function GameDetailPage() {
         {
           id: 999,
           code: 'SALDO',
-          name: 'Saldo Akun TOPUPSTORE',
+          name: 'Saldo Akun IRXPLAY',
           category: 'balance',
           description: user ? `Saldo Anda: ${formatRupiah(user.balance || 0)}` : 'Wajib Login / Registrasi untuk bayar via Saldo',
           fee_flat: 0,

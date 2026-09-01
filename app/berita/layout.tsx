@@ -1,8 +1,8 @@
 ﻿import type { Metadata } from "next";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "TopUp Game";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://topupgame.com";
+const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "IRXPLAY";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://irxplay.com";
 
 export async function generateMetadata({
   params,
