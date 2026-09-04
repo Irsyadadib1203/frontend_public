@@ -69,6 +69,8 @@ export interface PaymentMethod {
   image_url?: string;
   fee_flat: number;
   fee_percent: number;
+  fixed_fee?: number;
+  percent_fee?: number;
   is_active: boolean;
 }
 
@@ -128,10 +130,16 @@ export interface Deposit {
   user_id: number;
   amount: number;
   unique_code: number;
+  admin_fee?: number;
   total_amount: number;
+  payment_type?: 'instant' | 'manual';
   payment_method: string;
   payment_reference?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  tripay_reference?: string;
+  checkout_url?: string;
+  qr_url?: string;
+  payment_instructions?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
   notes?: string;
   created_at: string;
   user?: User;
