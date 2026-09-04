@@ -189,7 +189,22 @@ export default function GameDetailPage() {
 
     paymentMethods.forEach((pm) => {
       if (!pm.is_active) return;
-      const cat = pm.category || 'qris';
+      // Normalize backend category string → frontend group key
+      const rawCat = (pm.category || '').toLowerCase().replace(/\s+/g, '_');
+      let cat: string;
+      if (rawCat === 'e-wallet' || rawCat === 'e_wallet' || rawCat === 'ewallet') {
+        cat = 'ewallet';
+      } else if (rawCat === 'virtual_account' || rawCat === 'virtual account') {
+        cat = 'virtual_account';
+      } else if (rawCat === 'qris') {
+        cat = 'qris';
+      } else if (rawCat === 'convenience_store' || rawCat === 'convenience store' || rawCat === 'retail') {
+        cat = 'retail';
+      } else if (rawCat === 'saldo_akun' || rawCat === 'balance') {
+        cat = 'balance';
+      } else {
+        cat = 'qris'; // fallback ke qris
+      }
       if (!categories[cat]) categories[cat] = [];
       categories[cat].push(pm);
     });
