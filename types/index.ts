@@ -94,6 +94,9 @@ export interface Transaction {
   payment_method: string;
   payment_reference?: string;
   payment_verified_at?: string;
+  checkout_url?: string;
+  qr_url?: string;
+  payment_instructions?: string;
   ref_id?: string;
   provider_order_id?: string;
   provider_status?: string;

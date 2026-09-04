@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   ArrowLeft,
   Headphones,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -32,6 +34,16 @@ export default function InvoicePage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [copiedInvoice, setCopiedInvoice] = useState<boolean>(false);
   const [copiedRef, setCopiedRef] = useState<boolean>(false);
+  const [openInstruction, setOpenInstruction] = useState<number | null>(0);
+
+  const instructions: { title: string; steps: string[] }[] = React.useMemo(() => {
+    if (!transaction?.payment_instructions) return [];
+    try {
+      return JSON.parse(transaction.payment_instructions);
+    } catch {
+      return [];
+    }
+  }, [transaction?.payment_instructions]);
 
   const loadInvoice = async () => {
     if (!invoiceNumber) return;
@@ -247,7 +259,7 @@ export default function InvoicePage() {
 
             {/* Payment Instruction (If Pending) */}
             {transaction.status === 'pending' && (
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 space-y-3">
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
                     <QrCode className="h-4 w-4" /> Instruksi Pembayaran ({transaction.payment_method})
@@ -280,6 +292,60 @@ export default function InvoicePage() {
                     </div>
                   )}
                 </div>
+
+                {/* QRIS Display */}
+                {transaction.qr_url && (
+                  <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-border shadow-sm text-center">
+                    <p className="text-xs text-gray-800 font-bold mb-2">Scan QRIS Untuk Membayar</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={transaction.qr_url}
+                      alt="QRIS Code"
+                      className="w-48 h-48 md:w-56 md:h-56 object-contain rounded-lg border border-gray-200"
+                    />
+                    <p className="text-[10px] text-gray-500 mt-2">Dukungan: GoPay, OVO, DANA, ShopeePay, BCA, Mandiri, BRI, BNI & Seluruh Bank QRIS</p>
+                  </div>
+                )}
+
+                {/* Checkout Link Button */}
+                {transaction.checkout_url && (
+                  <div className="pt-1">
+                    <a
+                      href={transaction.checkout_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all"
+                    >
+                      Buka Halaman Pembayaran Tripay <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                )}
+
+                {/* Step-by-Step Payment Instructions */}
+                {instructions.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-amber-500/20">
+                    <span className="text-[11px] font-semibold text-muted-foreground block">Panduan Pembayaran:</span>
+                    {instructions.map((instr, idx) => (
+                      <div key={idx} className="bg-background/60 rounded-xl border border-border/50 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setOpenInstruction(openInstruction === idx ? null : idx)}
+                          className="w-full px-3 py-2 text-left flex items-center justify-between text-xs font-semibold text-foreground hover:bg-muted/40 transition-colors"
+                        >
+                          <span>{instr.title}</span>
+                          {openInstruction === idx ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        </button>
+                        {openInstruction === idx && (
+                          <div className="px-3 pb-3 pt-1 text-[11px] text-muted-foreground space-y-1.5 bg-muted/10 border-t border-border/30">
+                            {instr.steps.map((step, sIdx) => (
+                              <div key={sIdx} className="flex items-start gap-1.5" dangerouslySetInnerHTML={{ __html: `<span class="font-bold text-foreground">${sIdx + 1}.</span> ${step}` }} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Lakukan pembayaran persis sesuai nominal di atas. Setelah transfer berhasil, sistem akan mendeteksi otomatis dan memproses item top up Anda dalam 1 detik.
