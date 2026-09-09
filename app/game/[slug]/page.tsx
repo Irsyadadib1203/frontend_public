@@ -738,7 +738,7 @@ export default function GameDetailPage() {
 
                     {calculatePaymentFee() > 0 && (
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Biaya Admin</span>
+                        <span className="text-muted-foreground">Biaya Metode Pembayaran</span>
                         <span className="font-mono font-bold text-amber-400">
                           +{formatRupiah(calculatePaymentFee())}
                         </span>
@@ -881,7 +881,7 @@ export default function GameDetailPage() {
                 </div>
                 {calculatePaymentFee() > 0 && (
                   <div className="flex justify-between py-1 border-b border-border/30">
-                    <span className="text-muted-foreground">Biaya Admin</span>
+                    <span className="text-muted-foreground">Biaya Metode Pembayaran</span>
                     <span className="font-mono font-bold text-amber-400">+{formatRupiah(calculatePaymentFee())}</span>
                   </div>
                 )}
