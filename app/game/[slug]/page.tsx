@@ -580,13 +580,13 @@ export default function GameDetailPage() {
                     </div>
 
                     {/* QRIS & E-Wallet */}
-                    {groupedPayments.qris.length > 0 && (
+                    {(groupedPayments.qris.length > 0 || groupedPayments.ewallet.length > 0) && (
                       <div className="space-y-2">
                         <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                           <QrCode className="h-3.5 w-3.5 text-primary" /> QRIS & E-Wallet (Instan)
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {groupedPayments.qris.map((pm) => (
+                          {groupedPayments.qris.concat(groupedPayments.ewallet).map((pm) => (
                             <button
                               key={pm.code}
                               type="button"
