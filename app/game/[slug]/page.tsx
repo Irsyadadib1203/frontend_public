@@ -150,16 +150,19 @@ export default function GameDetailPage() {
     }
   };
 
+  const calculatePaymentFee = () => {
+    if (!selectedNominal || !selectedPayment) return 0;
+
+    const baseSelling = getItemPrice(selectedNominal);
+    const fixedFee = selectedPayment.fee_flat || selectedPayment.fixed_fee || 0;
+    const percentFee = selectedPayment.fee_percent || selectedPayment.percent_fee || 0;
+
+    return Math.round(fixedFee + (baseSelling * percentFee) / 100);
+  };
+
   const calculateTotal = () => {
     if (!selectedNominal) return 0;
-    const baseSelling = getItemPrice(selectedNominal);
-    if (!selectedPayment) return baseSelling;
-
-    let fee = selectedPayment.fee_flat || 0;
-    if (selectedPayment.fee_percent > 0) {
-      fee += baseSelling * (selectedPayment.fee_percent / 100);
-    }
-    return Math.round(baseSelling + fee);
+    return getItemPrice(selectedNominal) + calculatePaymentFee();
   };
 
   const formatRupiah = (val: number) => {
@@ -722,9 +725,25 @@ export default function GameDetailPage() {
                     </div>
 
                     <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Harga Produk</span>
+                      <span className="font-mono font-bold text-foreground">
+                        {formatRupiah(selectedNominal ? getItemPrice(selectedNominal) : 0)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Metode Bayar</span>
                       <span className="font-bold text-primary">{selectedPayment?.name || '-'}</span>
                     </div>
+
+                    {calculatePaymentFee() > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Biaya Admin</span>
+                        <span className="font-mono font-bold text-amber-400">
+                          +{formatRupiah(calculatePaymentFee())}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4 border-t border-border/60 flex items-center justify-between">
@@ -851,9 +870,21 @@ export default function GameDetailPage() {
                   <span className="font-bold text-foreground">{selectedNominal?.name}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/30">
+                  <span className="text-muted-foreground">Harga Produk</span>
+                  <span className="font-mono font-bold text-foreground">
+                    {formatRupiah(selectedNominal ? getItemPrice(selectedNominal) : 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-border/30">
                   <span className="text-muted-foreground">Metode Bayar</span>
                   <span className="font-bold text-primary">{selectedPayment?.name}</span>
                 </div>
+                {calculatePaymentFee() > 0 && (
+                  <div className="flex justify-between py-1 border-b border-border/30">
+                    <span className="text-muted-foreground">Biaya Admin</span>
+                    <span className="font-mono font-bold text-amber-400">+{formatRupiah(calculatePaymentFee())}</span>
+                  </div>
+                )}
                 <div className="flex justify-between py-1 font-mono">
                   <span className="text-muted-foreground">Total Tagihan</span>
                   <span className="font-extrabold text-primary text-sm">{formatRupiah(calculateTotal())}</span>
