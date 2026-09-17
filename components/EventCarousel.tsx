@@ -68,7 +68,7 @@ export default function EventCarousel() {
 
   if (loading) {
     return (
-      <div className="w-full h-48 sm:h-64 md:h-80 bg-card/40 border border-border/40 rounded-2xl animate-pulse" />
+      <div className="w-full aspect-[5/2] bg-card/40 border border-border/40 rounded-2xl animate-pulse" />
     );
   }
 
@@ -77,7 +77,7 @@ export default function EventCarousel() {
   return (
     <div className="relative w-full overflow-hidden rounded-2xl border border-border/50 shadow-2xl">
       {/* Banner Slide */}
-      <div className="relative h-48 sm:h-64 md:h-80 lg:h-96">
+      <div className="relative w-full aspect-[5/2]">
         {/* Background Image */}
         {banner.image_url ? (
           <img
