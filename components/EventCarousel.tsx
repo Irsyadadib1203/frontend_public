@@ -19,11 +19,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v
 const FALLBACK_BANNERS: Banner[] = [
   {
     id: 0,
-    title: "Selamat Datang di IRXPlay",
-    subtitle: "Platform top-up game terpercaya & tercepat. Top-up 24 jam non-stop!",
-    image_url: "",
+    title: "",
+    subtitle: "",
+    image_url: "/banners/banner_welcome.png",
     link_url: "",
-    badge_text: "PROMO AKTIF",
+    badge_text: "",
     is_active: true,
   },
 ];
@@ -94,7 +94,9 @@ export default function EventCarousel() {
         <div
           className={`absolute inset-0 ${
             banner.image_url
-              ? "bg-gradient-to-r from-black/75 via-black/40 to-transparent"
+              ? banner.title || banner.subtitle
+                ? "bg-gradient-to-r from-black/75 via-black/40 to-transparent"
+                : "bg-transparent"
               : "bg-gradient-to-r from-primary/30 via-purple-900/40 to-cyan-900/20"
           }`}
         />
@@ -108,30 +110,34 @@ export default function EventCarousel() {
         )}
 
         {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 lg:px-14 max-w-2xl">
-          {banner.badge_text && (
-            <span className="inline-block mb-3 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[11px] font-bold uppercase tracking-widest w-fit">
-              {banner.badge_text}
-            </span>
-          )}
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-gaming font-bold text-white leading-tight drop-shadow-lg">
-            {banner.title}
-          </h2>
-          {banner.subtitle && (
-            <p className="mt-2 text-xs sm:text-sm text-slate-200/90 max-w-md drop-shadow-md">
-              {banner.subtitle}
-            </p>
-          )}
-          {banner.link_url && (
-            <a
-              href={banner.link_url}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold w-fit hover:opacity-90 transition-opacity shadow-lg shadow-primary/30"
-            >
-              Lihat Promo
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          )}
-        </div>
+        {(banner.title || banner.subtitle || banner.badge_text || banner.link_url) ? (
+          <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 lg:px-14 max-w-2xl">
+            {banner.badge_text && (
+              <span className="inline-block mb-3 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[11px] font-bold uppercase tracking-widest w-fit">
+                {banner.badge_text}
+              </span>
+            )}
+            {banner.title && (
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-gaming font-bold text-white leading-tight drop-shadow-lg">
+                {banner.title}
+              </h2>
+            )}
+            {banner.subtitle && (
+              <p className="mt-2 text-xs sm:text-sm text-slate-200/90 max-w-md drop-shadow-md">
+                {banner.subtitle}
+              </p>
+            )}
+            {banner.link_url && (
+              <a
+                href={banner.link_url}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold w-fit hover:opacity-90 transition-opacity shadow-lg shadow-primary/30"
+              >
+                Lihat Promo
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+        ) : null}
 
         {/* Navigation Arrows */}
         {banners.length > 1 && (
