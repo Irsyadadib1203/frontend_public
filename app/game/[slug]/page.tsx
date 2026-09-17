@@ -64,6 +64,27 @@ export default function GameDetailPage() {
   const [showAuthRequiredModal, setShowAuthRequiredModal] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
+  // Deteksi Tipe Game Khusus
+  const isHoyoverse = useMemo(() => {
+    if (!game) return false;
+    const s = (game.slug || '').toLowerCase();
+    const n = (game.name || '').toLowerCase();
+    const c = (game.nickname_check_code || '').toLowerCase();
+    return s.includes('genshin') || s.includes('star-rail') || s.includes('hsr') || s.includes('honkai') ||
+           n.includes('genshin') || n.includes('star rail') || n.includes('honkai') ||
+           c.includes('genshin') || c.includes('honkai') || c.includes('hsr');
+  }, [game]);
+
+  const isValorant = useMemo(() => {
+    if (!game) return false;
+    const s = (game.slug || '').toLowerCase();
+    const n = (game.name || '').toLowerCase();
+    const c = (game.nickname_check_code || '').toLowerCase();
+    return s.includes('valorant') || s.includes('valo') || n.includes('valorant') || c.includes('valorant');
+  }, [game]);
+
+  const HOYOVERSE_SERVERS = ['Asia', 'America', 'Europe', 'TW,HK,MO'];
+
   useEffect(() => {
     if (!slug) return;
     let active = true;
@@ -88,6 +109,14 @@ export default function GameDetailPage() {
                 setSelectedNominal(activeNominals[0]);
               }
             }
+            // Set server default untuk game Hoyoverse (Genshin / Honkai: Star Rail)
+            const isHoyo = (gData.slug || '').toLowerCase().includes('genshin') ||
+                           (gData.slug || '').toLowerCase().includes('star-rail') ||
+                           (gData.slug || '').toLowerCase().includes('hsr') ||
+                           (gData.slug || '').toLowerCase().includes('honkai');
+            if (isHoyo) {
+              setServerIdInput('Asia');
+            }
           }
 
           setPaymentMethods(pmData);
@@ -109,11 +138,34 @@ export default function GameDetailPage() {
     };
   }, [slug]);
 
+  // Auto-detect server Hoyoverse saat user mengetik UID
+  const handleUserIdChange = (val: string) => {
+    setUserIdInput(val);
+    if (isHoyoverse && val.trim().length > 0) {
+      const firstChar = val.trim()[0];
+      if (firstChar === '6') setServerIdInput('America');
+      else if (firstChar === '7') setServerIdInput('Europe');
+      else if (firstChar === '8' || val.trim().startsWith('18')) setServerIdInput('Asia');
+      else if (firstChar === '9') setServerIdInput('TW,HK,MO');
+    }
+    if (isValorant && val.trim().includes('#')) {
+      setNickname(val.trim());
+      setNickValidated(true);
+    }
+  };
+
   // Handle Nickname Check
   const handleCheckNickname = async () => {
     if (!game) return;
     if (!userIdInput.trim()) {
-      toast.error('Masukkan User ID terlebih dahulu.');
+      toast.error(isValorant ? 'Masukkan Riot ID (Username#TAG) terlebih dahulu.' : 'Masukkan User ID terlebih dahulu.');
+      return;
+    }
+
+    if (isValorant) {
+      setNickname(userIdInput.trim());
+      setNickValidated(true);
+      toast.success(`Riot ID siap: ${userIdInput.trim()}`);
       return;
     }
 
@@ -169,8 +221,13 @@ export default function GameDetailPage() {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
   };
 
-  // Group payment methods by category (Requirement 2: ALWAYS show Saldo option)
+  // Group & filter payment methods by category
+  // Filter berdasarkan total harga nominal vs min_amount/max_amount tiap metode
   const groupedPayments = useMemo(() => {
+    // Hitung total untuk nominal yang sedang dipilih (pakai harga tanpa payment fee dulu,
+    // karena fee dihitung per metode — kita cukup bandingkan harga dasar nominal)
+    const basePrice = selectedNominal ? getItemPrice(selectedNominal) : 0;
+
     const categories: Record<string, PaymentMethod[]> = {
       balance: [
         {
@@ -181,6 +238,8 @@ export default function GameDetailPage() {
           description: user ? `Saldo Anda: ${formatRupiah(user.balance || 0)}` : 'Wajib Login / Registrasi untuk bayar via Saldo',
           fixed_fee: 0,
           percent_fee: 0,
+          min_amount: 0,
+          max_amount: 999_999_999,
           is_active: true,
         },
       ],
@@ -192,6 +251,15 @@ export default function GameDetailPage() {
 
     paymentMethods.forEach((pm) => {
       if (!pm.is_active) return;
+
+      // Filter min/max: bandingkan harga dasar nominal dengan batas metode pembayaran
+      // (basePrice 0 berarti belum ada nominal dipilih → tampilkan semua)
+      if (basePrice > 0) {
+        const minOk = pm.min_amount == null || basePrice >= pm.min_amount;
+        const maxOk = pm.max_amount == null || basePrice <= pm.max_amount;
+        if (!minOk || !maxOk) return; // skip metode ini
+      }
+
       // Normalize backend category string → frontend group key
       const rawCat = (pm.category || '').toLowerCase().replace(/\s+/g, '_');
       let cat: string;
@@ -213,7 +281,17 @@ export default function GameDetailPage() {
     });
 
     return categories;
-  }, [paymentMethods, user]);
+  }, [paymentMethods, user, selectedNominal]);
+
+  // Reset selectedPayment jika tidak lagi muncul di filter saat nominal berubah
+  useEffect(() => {
+    if (!selectedPayment || selectedPayment.code === 'SALDO') return;
+    const allVisible = Object.values(groupedPayments).flat();
+    const stillVisible = allVisible.some((pm) => pm.code === selectedPayment.code);
+    if (!stillVisible) {
+      setSelectedPayment(null);
+    }
+  }, [groupedPayments, selectedPayment]);
 
   const handleSelectPayment = (pm: PaymentMethod) => {
     if (pm.code === 'SALDO' && !user) {
@@ -404,29 +482,62 @@ export default function GameDetailPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-foreground mb-1.5">
-                        {game.user_id_label || 'User ID'} <span className="text-rose-500">*</span>
+                        {isValorant
+                          ? 'Riot ID'
+                          : isHoyoverse
+                          ? 'User ID (UID)'
+                          : (game.user_id_label || 'User ID')}{' '}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="Contoh: 12345678"
+                        placeholder={
+                          isValorant
+                            ? 'Contoh: Nickname#TAG'
+                            : isHoyoverse
+                            ? 'Contoh: 801234567 (9-10 digit)'
+                            : 'Contoh: 12345678'
+                        }
                         value={userIdInput}
-                        onChange={(e) => setUserIdInput(e.target.value)}
+                        onChange={(e) => handleUserIdChange(e.target.value)}
                         className="w-full bg-muted/50 border border-border/60 rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                       />
                     </div>
 
-                    {game.has_zone_id && (
+                    {(isHoyoverse || game.has_zone_id) && (
                       <div>
                         <label className="block text-xs font-bold text-foreground mb-1.5">
-                          {game.zone_id_label || 'Zone ID / Server'} <span className="text-rose-500">*</span>
+                          {isHoyoverse ? 'Pilih Server' : (game.zone_id_label || 'Zone ID / Server')}{' '}
+                          <span className="text-rose-500">*</span>
                         </label>
-                        <input
-                          type="text"
-                          placeholder="Contoh: 2124"
-                          value={serverIdInput}
-                          onChange={(e) => setServerIdInput(e.target.value)}
-                          className="w-full bg-muted/50 border border-border/60 rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                        />
+                        {isHoyoverse ? (
+                          <div className="relative">
+                            <select
+                              value={serverIdInput || 'Asia'}
+                              onChange={(e) => setServerIdInput(e.target.value)}
+                              className="w-full bg-muted/50 border border-border/60 rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer pr-10"
+                            >
+                              {HOYOVERSE_SERVERS.map((srv) => (
+                                <option key={srv} value={srv} className="bg-card text-foreground py-1">
+                                  {srv}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground">
+                              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                              </svg>
+                            </div>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            placeholder="Contoh: 2124"
+                            value={serverIdInput}
+                            onChange={(e) => setServerIdInput(e.target.value)}
+                            className="w-full bg-muted/50 border border-border/60 rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                          />
+                        )}
                       </div>
                     )}
                   </div>
@@ -440,8 +551,10 @@ export default function GameDetailPage() {
                         </span>
                       ) : nickValidated ? (
                         <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                          <CheckCircle2 className="h-4 w-4" /> Nickname: {nickname}
+                          <CheckCircle2 className="h-4 w-4" /> {isValorant ? 'Riot ID Siap:' : 'Nickname:'} {nickname}
                         </span>
+                      ) : isValorant ? (
+                        <span className="text-muted-foreground">Format Riot ID: Username#Tagline (tanpa spasi).</span>
                       ) : (
                         <span className="text-muted-foreground">Pastikan User ID sudah benar sebelum pesan.</span>
                       )}
@@ -453,7 +566,7 @@ export default function GameDetailPage() {
                       disabled={checkingNick}
                       className="w-full sm:w-auto px-4 py-2 bg-primary/20 hover:bg-primary text-primary hover:text-primary-foreground border border-primary/40 font-bold rounded-xl text-xs transition-all shrink-0"
                     >
-                      Cek Nickname
+                      {isValorant ? 'Verifikasi Riot ID' : 'Cek Nickname'}
                     </button>
                   </div>
                 </div>

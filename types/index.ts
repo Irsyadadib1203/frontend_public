@@ -70,6 +70,8 @@ export interface PaymentMethod {
   /** Field resmi dari backend */
   fixed_fee: number;
   percent_fee: number;
+  min_amount: number;
+  max_amount: number;
   is_active: boolean;
 }
 

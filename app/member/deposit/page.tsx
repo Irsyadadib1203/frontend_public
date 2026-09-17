@@ -136,6 +136,26 @@ export default function DepositMemberPage() {
     };
   }, [amount, selectedInstantMethod, paymentMethods]);
 
+  // Filter metode pembayaran berdasarkan jumlah deposit vs min/max tiap metode
+  const filteredPaymentMethods = useMemo(() => {
+    const numAmount = Number(amount) || 0;
+    if (numAmount <= 0) return paymentMethods;
+    return paymentMethods.filter((pm) => {
+      const minOk = pm.min_amount == null || numAmount >= pm.min_amount;
+      const maxOk = pm.max_amount == null || numAmount <= pm.max_amount;
+      return minOk && maxOk;
+    });
+  }, [paymentMethods, amount]);
+
+  // Reset selectedInstantMethod jika tidak lagi lolos filter
+  useEffect(() => {
+    if (!selectedInstantMethod) return;
+    const stillAvailable = filteredPaymentMethods.some((pm) => pm.code === selectedInstantMethod);
+    if (!stillAvailable && filteredPaymentMethods.length > 0) {
+      setSelectedInstantMethod(filteredPaymentMethods[0].code);
+    }
+  }, [filteredPaymentMethods, selectedInstantMethod]);
+
   const handleSubmitDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = Number(amount);
@@ -448,9 +468,13 @@ export default function DepositMemberPage() {
                       <div className="p-3 bg-muted/30 rounded-xl text-xs text-muted-foreground text-center">
                         Memuat daftar kanal pembayaran Tripay...
                       </div>
+                    ) : filteredPaymentMethods.length === 0 ? (
+                      <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-400 text-center">
+                        Tidak ada metode pembayaran yang tersedia untuk jumlah ini. Coba jumlah lain atau gunakan Transfer Manual.
+                      </div>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
-                        {paymentMethods.map((pm) => {
+                        {filteredPaymentMethods.map((pm) => {
                           const flatFee = pm.fixed_fee ?? 0;
                           const percentFee = pm.percent_fee ?? 0;
                           let feeLabel = '';
