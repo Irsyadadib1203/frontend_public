@@ -126,8 +126,8 @@ export default function DepositMemberPage() {
     const pm = paymentMethods.find((p) => p.code === selectedInstantMethod);
     if (!pm) return { fee: 0, total: numAmount };
 
-    const pFee = pm.fee_percent ?? pm.percent_fee ?? 0;
-    const fFee = pm.fee_flat ?? pm.fixed_fee ?? 0;
+    const pFee = pm.percent_fee ?? 0;
+    const fFee = pm.fixed_fee ?? 0;
     const percentFee = (numAmount * pFee) / 100;
     const totalFee = fFee + percentFee;
     return {
@@ -449,25 +449,52 @@ export default function DepositMemberPage() {
                         Memuat daftar kanal pembayaran Tripay...
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto pr-1">
-                        {paymentMethods.map((pm) => (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
+                        {paymentMethods.map((pm) => {
+                          const flatFee = pm.fixed_fee ?? 0;
+                          const percentFee = pm.percent_fee ?? 0;
+                          let feeLabel = '';
+                          if (flatFee > 0 && percentFee > 0) {
+                            feeLabel = `${formatRupiah(flatFee)} +${percentFee}%`;
+                          } else if (flatFee > 0) {
+                            feeLabel = formatRupiah(flatFee);
+                          } else if (percentFee > 0) {
+                            feeLabel = `${percentFee}%`;
+                          } else {
+                            feeLabel = 'Gratis';
+                          }
+                          return (
                           <div
                             key={pm.code}
                             onClick={() => setSelectedInstantMethod(pm.code)}
-                            className={`p-3 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                            className={`p-3 rounded-2xl border cursor-pointer transition-all flex flex-col gap-2 ${
                               selectedInstantMethod === pm.code
-                                ? 'bg-primary/10 border-primary text-primary shadow-sm'
+                                ? 'bg-primary/10 border-primary shadow-sm'
                                 : 'bg-muted/20 border-border/50 text-muted-foreground hover:bg-muted/40'
                             }`}
                           >
-                            <span className="text-xs font-bold text-foreground truncate">{pm.name}</span>
-                            <span className="text-[10px] text-muted-foreground mt-1 font-mono">
-                              Fee: {(pm.fee_flat || pm.fixed_fee || 0) > 0 ? formatRupiah(pm.fee_flat || pm.fixed_fee || 0) : ''}
-                              {(pm.fee_percent || pm.percent_fee || 0) > 0 ? ` +${pm.fee_percent || pm.percent_fee}%` : ''}
-                              {!(pm.fee_flat || pm.fixed_fee) && !(pm.fee_percent || pm.percent_fee) ? 'Gratis' : ''}
+                            {/* Logo + Nama */}
+                            <div className="flex items-center gap-2">
+                              {pm.image_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={pm.image_url}
+                                  alt={pm.name}
+                                  className="w-7 h-7 object-contain rounded-md flex-shrink-0 bg-white p-0.5"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                              ) : (
+                                <div className="w-7 h-7 rounded-md bg-muted/60 flex-shrink-0" />
+                              )}
+                              <span className="text-xs font-bold text-foreground leading-tight line-clamp-2">{pm.name}</span>
+                            </div>
+                            {/* Fee */}
+                            <span className={`text-[10px] font-mono ${feeLabel === 'Gratis' ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                              Fee: {feeLabel}
                             </span>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 

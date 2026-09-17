@@ -67,10 +67,9 @@ export interface PaymentMethod {
   category: 'qris' | 'ewallet' | 'virtual_account' | 'retail' | 'balance';
   description?: string;
   image_url?: string;
-  fee_flat: number;
-  fee_percent: number;
-  fixed_fee?: number;
-  percent_fee?: number;
+  /** Field resmi dari backend */
+  fixed_fee: number;
+  percent_fee: number;
   is_active: boolean;
 }
 

@@ -154,8 +154,8 @@ export default function GameDetailPage() {
     if (!selectedNominal || !selectedPayment) return 0;
 
     const baseSelling = getItemPrice(selectedNominal);
-    const fixedFee = selectedPayment.fee_flat || selectedPayment.fixed_fee || 0;
-    const percentFee = selectedPayment.fee_percent || selectedPayment.percent_fee || 0;
+    const fixedFee = selectedPayment.fixed_fee ?? 0;
+    const percentFee = selectedPayment.percent_fee ?? 0;
 
     return Math.round(fixedFee + (baseSelling * percentFee) / 100);
   };
@@ -179,8 +179,8 @@ export default function GameDetailPage() {
           name: 'Saldo Akun IRXPLAY',
           category: 'balance',
           description: user ? `Saldo Anda: ${formatRupiah(user.balance || 0)}` : 'Wajib Login / Registrasi untuk bayar via Saldo',
-          fee_flat: 0,
-          fee_percent: 0,
+          fixed_fee: 0,
+          percent_fee: 0,
           is_active: true,
         },
       ],
@@ -586,7 +586,15 @@ export default function GameDetailPage() {
                           <QrCode className="h-3.5 w-3.5 text-primary" /> QRIS & E-Wallet (Instan)
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {groupedPayments.qris.concat(groupedPayments.ewallet).map((pm) => (
+                          {groupedPayments.qris.concat(groupedPayments.ewallet).map((pm) => {
+                            const flatFee = pm.fixed_fee ?? 0;
+                            const pctFee = pm.percent_fee ?? 0;
+                            let feeLabel = '';
+                            if (flatFee > 0 && pctFee > 0) feeLabel = `${formatRupiah(flatFee)} +${pctFee}%`;
+                            else if (flatFee > 0) feeLabel = formatRupiah(flatFee);
+                            else if (pctFee > 0) feeLabel = `${pctFee}%`;
+                            else feeLabel = 'Gratis';
+                            return (
                             <button
                               key={pm.code}
                               type="button"
@@ -597,12 +605,24 @@ export default function GameDetailPage() {
                                   : 'bg-muted/40 border-border/50 hover:bg-muted'
                               }`}
                             >
-                              <span className="text-xs font-bold text-foreground">{pm.name}</span>
-                              <span className="text-[10px] text-muted-foreground font-mono">
-                                Fee: {pm.fee_flat ? formatRupiah(pm.fee_flat) : `${pm.fee_percent}%`}
+                              <div className="flex items-center gap-2 min-w-0">
+                                {pm.image_url ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={pm.image_url}
+                                    alt={pm.name}
+                                    className="w-7 h-7 object-contain rounded-md flex-shrink-0 bg-white p-0.5"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
+                                ) : null}
+                                <span className="text-xs font-bold text-foreground truncate">{pm.name}</span>
+                              </div>
+                              <span className={`text-[10px] font-mono flex-shrink-0 ml-1 ${feeLabel === 'Gratis' ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                                Fee: {feeLabel}
                               </span>
                             </button>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -614,7 +634,15 @@ export default function GameDetailPage() {
                           <Building2 className="h-3.5 w-3.5 text-secondary" /> Virtual Account Bank
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {groupedPayments.virtual_account.map((pm) => (
+                          {groupedPayments.virtual_account.map((pm) => {
+                            const flatFee = pm.fixed_fee ?? 0;
+                            const pctFee = pm.percent_fee ?? 0;
+                            let feeLabel = '';
+                            if (flatFee > 0 && pctFee > 0) feeLabel = `${formatRupiah(flatFee)} +${pctFee}%`;
+                            else if (flatFee > 0) feeLabel = formatRupiah(flatFee);
+                            else if (pctFee > 0) feeLabel = `${pctFee}%`;
+                            else feeLabel = 'Gratis';
+                            return (
                             <button
                               key={pm.code}
                               type="button"
@@ -625,12 +653,24 @@ export default function GameDetailPage() {
                                   : 'bg-muted/40 border-border/50 hover:bg-muted'
                               }`}
                             >
-                              <span className="text-xs font-bold text-foreground">{pm.name}</span>
-                              <span className="text-[10px] text-muted-foreground font-mono">
-                                Fee: {formatRupiah(pm.fee_flat)}
+                              <div className="flex items-center gap-2 min-w-0">
+                                {pm.image_url ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={pm.image_url}
+                                    alt={pm.name}
+                                    className="w-7 h-7 object-contain rounded-md flex-shrink-0 bg-white p-0.5"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
+                                ) : null}
+                                <span className="text-xs font-bold text-foreground truncate">{pm.name}</span>
+                              </div>
+                              <span className={`text-[10px] font-mono flex-shrink-0 ml-1 ${feeLabel === 'Gratis' ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                                Fee: {feeLabel}
                               </span>
                             </button>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
