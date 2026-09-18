@@ -34,6 +34,7 @@ export default function InvoicePage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [copiedInvoice, setCopiedInvoice] = useState<boolean>(false);
   const [copiedRef, setCopiedRef] = useState<boolean>(false);
+  const [copiedSN, setCopiedSN] = useState<boolean>(false);
   const [openInstruction, setOpenInstruction] = useState<number | null>(0);
 
   const instructions: { title: string; steps: string[] }[] = React.useMemo(() => {
@@ -96,6 +97,7 @@ export default function InvoicePage() {
                 ...prev,
                 status: msg.payload.status,
                 completed_at: msg.payload.completed_at ?? prev.completed_at,
+                sn: msg.payload.sn ?? prev.sn,
               };
             });
             // Tutup koneksi SSE jika sudah final
@@ -129,14 +131,17 @@ export default function InvoicePage() {
     };
   }, [invoiceNumber]);
 
-  const copyToClipboard = (text: string, type: 'invoice' | 'ref') => {
+  const copyToClipboard = (text: string, type: 'invoice' | 'ref' | 'sn') => {
     navigator.clipboard.writeText(text);
     if (type === 'invoice') {
       setCopiedInvoice(true);
       setTimeout(() => setCopiedInvoice(false), 2000);
-    } else {
+    } else if (type === 'ref') {
       setCopiedRef(true);
       setTimeout(() => setCopiedRef(false), 2000);
+    } else {
+      setCopiedSN(true);
+      setTimeout(() => setCopiedSN(false), 2000);
     }
     toast.success('Disalin ke papan klip!');
   };
@@ -353,13 +358,41 @@ export default function InvoicePage() {
               </div>
             )}
 
-            {/* Serial Number Info (If Success) */}
-            {transaction.status === 'success' && transaction.payment_reference && (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center space-y-1">
-                <span className="text-xs text-emerald-400 font-bold block">SN / Kode Voucher:</span>
-                <span className="font-mono text-base font-extrabold text-foreground select-all">
-                  {transaction.payment_reference}
-                </span>
+            {/* Serial Number / Bukti Pengisian (If Available or Success) */}
+            {(transaction.sn || (transaction.status === 'success' && transaction.payment_reference)) && (
+              <div className="bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-teal-500/15 border border-emerald-500/30 rounded-2xl p-5 shadow-sm space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-emerald-400 font-extrabold flex items-center gap-1.5 uppercase tracking-wide">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" /> Serial Number (SN) / Bukti Pengisian:
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    TERVERIFIKASI
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 bg-background/90 px-4 py-3 rounded-xl border border-border/60">
+                  <span className="font-mono text-sm md:text-base font-extrabold text-foreground select-all break-all">
+                    {transaction.sn || transaction.payment_reference}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(transaction.sn || transaction.payment_reference || '', 'sn')}
+                    className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 hover:text-emerald-300 font-bold text-xs inline-flex items-center gap-1 shrink-0 transition-colors"
+                    title="Salin Serial Number"
+                  >
+                    {copiedSN ? (
+                      <>
+                        <Check className="h-3.5 w-3.5" />
+                        <span>Tersalin</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Salin SN</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 

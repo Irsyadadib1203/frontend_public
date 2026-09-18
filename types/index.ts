@@ -104,6 +104,7 @@ export interface Transaction {
   provider_order_id?: string;
   provider_status?: string;
   provider_message?: string;
+  sn?: string;
   completed_at?: string;
   created_at: string;
   updated_at: string;

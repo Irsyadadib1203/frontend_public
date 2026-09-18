@@ -6,21 +6,15 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Gamepad2,
   CheckCircle2,
   AlertCircle,
   Zap,
   ShieldCheck,
-  Search,
   Wallet,
   QrCode,
-  CreditCard,
   Building2,
-  Store,
   Phone,
   Mail,
-  User as UserIcon,
-  ChevronRight,
   RefreshCw,
   Sparkles,
   X,
@@ -32,7 +26,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { fetchGameBySlug, checkNickname, fetchPaymentMethods, createTransactionOrder } from '@/lib/api';
-import { Game, Nominal, PaymentMethod, Transaction } from '@/types';
+import { Game, Nominal, PaymentMethod } from '@/types';
 import { toast } from 'sonner';
 
 export default function GameDetailPage() {
@@ -124,7 +118,7 @@ export default function GameDetailPage() {
             setSelectedPayment(pmData[0]);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load game detail:', err);
         if (active) setError('Gagal memuat detail game.');
       } finally {
@@ -148,10 +142,24 @@ export default function GameDetailPage() {
       else if (firstChar === '8' || val.trim().startsWith('18')) setServerIdInput('Asia');
       else if (firstChar === '9') setServerIdInput('TW,HK,MO');
     }
-    if (isValorant && val.trim().includes('#')) {
-      setNickname(val.trim());
-      setNickValidated(true);
+    if (isValorant) {
+      if (val.trim().includes('#')) {
+        setNickname(val.trim());
+        setNickValidated(true);
+      } else {
+        setNickname('');
+        setNickValidated(false);
+      }
+    } else {
+      setNickValidated(false);
+      setNickname('');
     }
+  };
+
+  const handleServerIdChange = (val: string) => {
+    setServerIdInput(val);
+    setNickValidated(false);
+    setNickname('');
   };
 
   // Handle Nickname Check
@@ -161,8 +169,16 @@ export default function GameDetailPage() {
       toast.error(isValorant ? 'Masukkan Riot ID (Username#TAG) terlebih dahulu.' : 'Masukkan User ID terlebih dahulu.');
       return;
     }
+    if (game.has_zone_id && !serverIdInput.trim()) {
+      toast.error('Masukkan Zone ID / Server Akun Game Anda.');
+      return;
+    }
 
     if (isValorant) {
+      if (!userIdInput.includes('#') || userIdInput.trim().split('#').length < 2 || !userIdInput.trim().split('#')[1]) {
+        toast.error('Format Riot ID tidak valid. Contoh: Player#1234');
+        return;
+      }
       setNickname(userIdInput.trim());
       setNickValidated(true);
       toast.success(`Riot ID siap: ${userIdInput.trim()}`);
@@ -174,7 +190,7 @@ export default function GameDetailPage() {
     setNickname('');
 
     const code = game.nickname_check_code || game.name.toUpperCase().replace(/\s+/g, '_');
-    const res = await checkNickname(code, userIdInput, serverIdInput);
+    const res = await checkNickname(code, userIdInput.trim(), serverIdInput.trim());
 
     setCheckingNick(false);
     if (res.success && res.nickname) {
@@ -183,7 +199,7 @@ export default function GameDetailPage() {
       toast.success(`Nickname ditemukan: ${res.nickname}`);
     } else {
       setNickValidated(false);
-      toast.error(res.message || 'Gagal memverifikasi ID Game.');
+      toast.error(res.message || 'ID Game tidak ditemukan atau gagal diverifikasi.');
     }
   };
 
@@ -281,6 +297,7 @@ export default function GameDetailPage() {
     });
 
     return categories;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentMethods, user, selectedNominal]);
 
   // Reset selectedPayment jika tidak lagi muncul di filter saat nominal berubah
@@ -309,7 +326,7 @@ export default function GameDetailPage() {
     }
 
     if (!userIdInput.trim()) {
-      toast.error('Masukkan User ID Akun Game Anda.');
+      toast.error(isValorant ? 'Masukkan Riot ID Akun Game Anda.' : 'Masukkan User ID Akun Game Anda.');
       return;
     }
 
@@ -321,6 +338,40 @@ export default function GameDetailPage() {
     if (!phoneInput.trim()) {
       toast.error('Masukkan Nomor WhatsApp untuk menerima struk transaksi.');
       return;
+    }
+
+    // Check / Validate Nickname automatically if not validated yet
+    const checkCode = game.nickname_check_code || '';
+    if (isValorant) {
+      if (!userIdInput.includes('#') || userIdInput.trim().split('#').length < 2 || !userIdInput.trim().split('#')[1]) {
+        toast.error('Format Riot ID tidak valid. Contoh: Player#1234');
+        return;
+      }
+      setNickname(userIdInput.trim());
+      setNickValidated(true);
+    } else if (checkCode && checkCode.trim() !== '') {
+      if (!nickValidated || !nickname) {
+        setCheckingNick(true);
+        toast.info('Memeriksa Nickname ID Game...');
+        try {
+          const res = await checkNickname(checkCode, userIdInput.trim(), serverIdInput.trim());
+          setCheckingNick(false);
+          if (!res.success || !res.nickname) {
+            setNickValidated(false);
+            setNickname('');
+            toast.error(res.message || 'ID Akun Game tidak ditemukan. Mohon cek kembali User ID / Server Anda.');
+            return;
+          }
+          setNickname(res.nickname);
+          setNickValidated(true);
+          toast.success(`Nickname terverifikasi: ${res.nickname}`);
+        } catch (_err) {
+          setCheckingNick(false);
+          setNickValidated(false);
+          toast.error('Gagal memverifikasi ID Game. Silakan coba lagi.');
+          return;
+        }
+      }
     }
 
     // REQUIREMENT 2: If Saldo is selected and user is NOT logged in, require login!
@@ -368,7 +419,7 @@ export default function GameDetailPage() {
       } else {
         toast.error(res.message || 'Gagal membuat pesanan transaksi.');
       }
-    } catch (err: any) {
+    } catch {
       toast.error('Terjadi kesalahan jaringan.');
     } finally {
       setSubmitting(false);
@@ -514,7 +565,7 @@ export default function GameDetailPage() {
                           <div className="relative">
                             <select
                               value={serverIdInput || 'Asia'}
-                              onChange={(e) => setServerIdInput(e.target.value)}
+                              onChange={(e) => handleServerIdChange(e.target.value)}
                               className="w-full bg-muted/50 border border-border/60 rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer pr-10"
                             >
                               {HOYOVERSE_SERVERS.map((srv) => (
@@ -534,7 +585,7 @@ export default function GameDetailPage() {
                             type="text"
                             placeholder="Contoh: 2124"
                             value={serverIdInput}
-                            onChange={(e) => setServerIdInput(e.target.value)}
+                            onChange={(e) => handleServerIdChange(e.target.value)}
                             className="w-full bg-muted/50 border border-border/60 rounded-xl px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                           />
                         )}
