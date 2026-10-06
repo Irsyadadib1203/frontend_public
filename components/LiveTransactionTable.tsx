@@ -89,6 +89,13 @@ export default function LiveTransactionTable() {
         </span>
       );
     }
+    if (st === 'refunded') {
+      return (
+        <span className="inline-flex items-center gap-1 bg-purple-500/15 text-purple-400 border border-purple-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded-full font-sans">
+          <RefreshCw className="h-3 w-3" /> Dana Dikembalikan
+        </span>
+      );
+    }
     return (
       <span className="inline-flex items-center gap-1 bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded-full font-sans">
         <Clock className="h-3 w-3" /> Pending
