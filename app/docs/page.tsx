@@ -140,8 +140,6 @@ const productResponse = `{
       "brand": "Mobile Legends: Bang Bang",
       "price": 19200,
       "sku_code": "MLBB_86",
-      "buyer_product_status": true,
-      "seller_product_status": true
     }
   ]
 }`;

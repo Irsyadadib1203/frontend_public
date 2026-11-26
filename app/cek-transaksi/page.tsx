@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Search, Receipt, ArrowRight, ShieldCheck, HelpCircle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import LiveTransactionTable from '@/components/LiveTransactionTable';
 import { toast } from 'sonner';
 
 export default function CekTransaksiPage() {
@@ -81,11 +80,6 @@ export default function CekTransaksiPage() {
               </p>
             </div>
 
-          </div>
-
-          {/* LIVE TRANSAKSI TABLE PLACEMENT (Requirement 1) */}
-          <div>
-            <LiveTransactionTable />
           </div>
 
         </div>

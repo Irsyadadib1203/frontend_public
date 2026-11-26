@@ -138,8 +138,7 @@ export async function fetchPaymentMethods(): Promise<PaymentMethod[]> {
 }
 
 export async function fetchRecentTransactions(): Promise<any[]> {
-  const res = await fetchAPI<any[]>('/transactions/recent?limit=15');
-  return res.success && Array.isArray(res.data) ? res.data : [];
+  return [];
 }
 
 export async function fetchTransactionByInvoice(invoice: string): Promise<Transaction | null> {

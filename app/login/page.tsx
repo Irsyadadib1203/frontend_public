@@ -112,7 +112,7 @@ export default function LoginPage() {
 
             <div className="pt-4 border-t border-border/50 text-center text-xs text-muted-foreground">
               Belum memiliki akun member?{' '}
-              <Link href="/register" className="font-bold text-primary hover:underline">
+              <Link href="/registers" className="font-bold text-primary hover:underline">
                 Daftar Sekarang
               </Link>
             </div>

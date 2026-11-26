@@ -6,7 +6,6 @@ import { Gamepad2, Zap, Sparkles, Search, Layers, RefreshCw, AlertCircle } from 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EventCarousel from '@/components/EventCarousel';
-import LiveTicker from '@/components/LiveTicker';
 import GameCard from '@/components/GameCard';
 import { fetchPublicGames } from '@/lib/api';
 import { Game, GameCategory } from '@/types';
@@ -86,9 +85,6 @@ export default function HomePage() {
       <Navbar />
 
       <main className="flex-1 pt-20 relative z-10">
-        {/* Live Transaction Marquee Ticker */}
-        <LiveTicker />
-
         {/* Hero Section */}
         <section className="relative pt-6 pb-6 overflow-hidden">
           <div className="container mx-auto px-4 space-y-6">
