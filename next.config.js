@@ -6,12 +6,10 @@ const nextConfig = {
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME || "IRXPLAY",
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "https://irxplay.com",
   },
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '**' },
-      { protocol: 'http', hostname: '**' },
-    ],
-  },
+ images: { remotePatterns: [
+  { protocol: 'https', hostname: 'api1235.irxplay.com' },
+  { protocol: 'https', hostname: 'cdn.irxplay.com' },
+]},
   async headers() {
     return [
       {
